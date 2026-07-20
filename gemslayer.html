@@ -18,9 +18,12 @@
   #bg.space{ background:radial-gradient(700px 500px at 80% -10%,#2a1e7a,transparent 60%),radial-gradient(900px 700px at -10% 30%,#5a1b8f,transparent 55%),linear-gradient(160deg,#060417,#1a0f3d); }
   #bg.ocean{ background:radial-gradient(800px 500px at 30% -10%,#0fb8c9,transparent 55%),radial-gradient(900px 700px at 110% 30%,#1660c9,transparent 55%),linear-gradient(160deg,#053b63,#021a36); }
   #bg.volcano{ background:radial-gradient(800px 500px at 25% -5%,#ff7b3d,transparent 55%),radial-gradient(900px 700px at 110% 25%,#b3001b,transparent 55%),linear-gradient(160deg,#3a0a0a,#1a0303); }
+  #bg.astral{ background:radial-gradient(760px 500px at 18% -10%,#6a1fb0,transparent 55%),radial-gradient(900px 700px at 112% 18%,#0aa0ff,transparent 50%),radial-gradient(760px 620px at 55% 120%,#ff2e9a,transparent 55%),linear-gradient(160deg,#14002f,#05010f); }
   #stars{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
   .floaty{ position:absolute; border-radius:50%; opacity:.5; animation:rise linear infinite; }
   @keyframes rise{ from{transform:translateY(110vh) scale(.6);opacity:0} 10%{opacity:.6} to{transform:translateY(-10vh) scale(1.1);opacity:0} }
+  #startEmblem{ animation:bob 3s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
 
   .screen{ position:fixed; inset:0; display:none; flex-direction:column; align-items:center; overflow-y:auto; padding:16px 14px 28px; }
   .screen.show{ display:flex; }
@@ -72,6 +75,13 @@
 
   .boardwrap{ position:relative; aspect-ratio:1/1; width:100%; margin-top:10px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12); border-radius:18px; padding:var(--gap); box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 0 36px rgba(120,0,200,.22); }
   #board{ position:absolute; inset:var(--gap); display:grid; gap:var(--gap); }
+  #fireBar{ position:absolute; left:0; right:0; bottom:0; height:0%; opacity:0; pointer-events:none; z-index:20; border-radius:0 0 18px 18px;
+    background:linear-gradient(0deg,rgba(255,55,0,.9),rgba(255,140,0,.55) 55%,rgba(255,200,0,.16) 85%,transparent);
+    box-shadow:inset 0 10px 26px rgba(255,120,0,.65); transition:height .5s linear; }
+  #fireBar.hot{ animation:flick .18s infinite alternate; }
+  @keyframes flick{ from{filter:brightness(1)} to{filter:brightness(1.4)} }
+  .boardwrap.danger{ animation:dangerpulse .6s infinite alternate; }
+  @keyframes dangerpulse{ from{box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 0 36px rgba(255,60,0,.35)} to{box-shadow:0 16px 44px rgba(0,0,0,.5),inset 0 0 44px rgba(255,60,0,.7),0 0 22px rgba(255,60,0,.6)} }
   .tile{ position:relative; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .12s,opacity .18s; will-change:transform; }
   .gem{ width:80%; height:80%; border-radius:50% 50% 46% 46%; display:flex; align-items:center; justify-content:center; font-size:18px; position:relative; overflow:hidden; box-shadow:inset 0 -5px 9px rgba(0,0,0,.35),inset 0 5px 9px rgba(255,255,255,.4),0 3px 8px rgba(0,0,0,.4); }
   .gem::after{ content:""; position:absolute; top:9%; left:16%; width:32%; height:22%; background:rgba(255,255,255,.7); border-radius:50%; filter:blur(2px); }
@@ -143,6 +153,21 @@
 <body>
   <div id="bg" class="neon"></div>
   <div id="stars"></div>
+
+  <!-- START / TITLE -->
+  <div class="screen" id="screen-start">
+    <div class="panel" style="text-align:center;margin:auto 0">
+      <img id="startEmblem" alt="GemSlayer" style="width:150px;max-width:55%;margin:0 auto 2px;filter:drop-shadow(0 0 22px rgba(0,240,255,.6))" />
+      <h1 style="font-size:42px;letter-spacing:5px">GEMSLAYER</h1>
+      <div class="sub">NEON MATCH-3 SAGA</div>
+      <div style="margin-top:24px">
+        <button class="menuBtn" id="startPlay" style="font-size:18px;padding:17px">▶ START</button>
+        <button class="menuBtn ghost" id="startHow" style="margin-top:10px">📖 HOW TO PLAY</button>
+        <button class="menuBtn ghost" id="startSettings" style="margin-top:10px">⚙️ SETTINGS</button>
+      </div>
+      <div class="hint" style="margin-top:18px">Match 3+ gems • 36 levels • 6 worlds • bosses &amp; more</div>
+    </div>
+  </div>
 
   <!-- AVATAR -->
   <div class="screen" id="screen-avatar">
@@ -227,7 +252,7 @@
         <div class="stat goal glass"><div class="k" id="kGoal">GOAL</div><div class="v" id="goalTxt">2000</div></div>
       </div>
       <div class="barwrap"><div class="bar" id="bar"></div></div>
-      <div class="boardwrap"><div id="board"></div><div class="combo" id="combo"></div></div>
+      <div class="boardwrap"><div id="board"></div><div id="fireBar"></div><div class="combo" id="combo"></div></div>
       <div class="blasters" id="blasterBar"></div>
     </div>
   </div>
@@ -353,6 +378,7 @@
     <p class="recipe" style="margin-top:8px"><b>⚡ Blasters</b> (buy in Shop): Hammer · Shuffle · Bomb · Bolt · Prism. Tap one, then tap the board.</p>
     <p class="recipe"><b>👾 Boss levels</b> cap each world — drain the boss's HP before your moves run out!</p>
     <p class="recipe"><b>🟦 Jelly levels</b> — clear the blue jelly off every tile by matching on top of it before moves run out.</p>
+    <p class="recipe"><b>🔥 Fire levels</b> (senior worlds) — a blaze creeps up the board if you stall. Every match pushes it back; let it reach the top and you're burned out. Move fast!</p>
     <p class="recipe"><b>💖 Lives</b> refill over time · <b>🎁 Daily rewards</b> grow with your streak · <b>⏱️ Timed</b> mode feeds the weekly 🏆 leaderboard.</p>
     <button id="howOk" style="width:100%;margin-top:10px">GOT IT!</button>
   </div></div>
@@ -365,7 +391,7 @@
     blasters:{hammer:3,shuffle:2,bomb:1,lightning:0,colorblast:0}, ownedBlasters:["hammer","shuffle"],
     created:false, lives:5, maxLives:5, lastLife:Date.now(), daily:{last:"",streak:0},
     timedBest:0, allTimeBest:0, weeklyBest:0, weekId:0, music:true, sfx:true, vol:1, cb:false, activeSkin:0, ownedSkins:[0],
-    stats:{boosters:0,maxCombo:0,wins:0}, winStreak:0, survivalBest:0 };
+    stats:{boosters:0,maxCombo:0,wins:0}, winStreak:0, survivalBest:0, seenGuide:false };
   let S=load();
   function load(){ try{ const r=JSON.parse(localStorage.getItem(SAVE_KEY)); const o=r?Object.assign(JSON.parse(JSON.stringify(DEFAULT)),r):JSON.parse(JSON.stringify(DEFAULT)); if(o.timedBest&&!o.allTimeBest)o.allTimeBest=o.timedBest; if(!o.ownedSkins||!o.ownedSkins.length)o.ownedSkins=[0]; if(!o.stats)o.stats={boosters:0,maxCombo:0,wins:0}; return o; }catch(e){ return JSON.parse(JSON.stringify(DEFAULT)); } }
   function save(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(S)); }catch(e){} }
@@ -379,18 +405,27 @@
   ];
   let TYPES=SKINS[0].gems;
   const SYMS=["◆","▲","●","★","✚","⬢"];
-  const WORLDS=[{name:"NEON CITY",bg:"neon"},{name:"CANDY COVE",bg:"candy"},{name:"COSMIC DRIFT",bg:"space"},{name:"CORAL DEEP",bg:"ocean"},{name:"VOLCANO CORE",bg:"volcano"}];
+  const WORLDS=[{name:"NEON CITY",bg:"neon"},{name:"CANDY COVE",bg:"candy"},{name:"COSMIC DRIFT",bg:"space"},{name:"CORAL DEEP",bg:"ocean"},{name:"VOLCANO CORE",bg:"volcano"},{name:"ASTRAL VOID",bg:"astral"}];
   const LEVELS=[];
-  (function(){ const norm=[
-    {s:7,n:4,mv:24,goal:"score",t:1500},{s:7,n:4,mv:22,goal:"collect",ct:1,cc:18},{s:8,n:4,mv:24,goal:"score",t:2600},{s:8,n:5,mv:22,goal:"collect",ct:0,cc:22},
-    {s:8,n:5,mv:24,goal:"score",t:3200},{s:8,n:5,mv:30,goal:"jelly"},{s:8,n:5,mv:24,goal:"score",t:4200,ice:5},{s:8,n:5,mv:20,goal:"collect",ct:2,cc:26},
-    {s:8,n:5,mv:22,goal:"score",t:5000},{s:8,n:6,mv:24,goal:"collect",ct:4,cc:28},{s:8,n:6,mv:20,goal:"score",t:5800},{s:8,n:6,mv:32,goal:"jelly"},
-    {s:8,n:6,mv:20,goal:"score",t:6800},{s:9,n:6,mv:22,goal:"collect",ct:5,cc:32},{s:9,n:6,mv:24,goal:"score",t:7800,ice:7},{s:9,n:6,mv:22,goal:"collect",ct:0,cc:34},
-    {s:9,n:6,mv:20,goal:"score",t:9000},{s:9,n:6,mv:32,goal:"jelly"},{s:9,n:6,mv:18,goal:"score",t:10500},{s:9,n:6,mv:20,goal:"collect",ct:4,cc:40}];
-    const bosses=[
-      {bn:"GLITCH KING",be:"👾",s:8,n:5,mv:22,hp:120},{bn:"SUGAR GOLEM",be:"🍬",s:8,n:5,mv:22,hp:160},
-      {bn:"VOID SERPENT",be:"🐉",s:8,n:6,mv:22,hp:200},{bn:"THE KRAKEN",be:"🐙",s:9,n:6,mv:22,hp:250},{bn:"MAGMA TITAN",be:"🌋",s:9,n:6,mv:20,hp:320}];
-    for(let w=0;w<5;w++){ for(let k=0;k<4;k++)LEVELS.push(Object.assign({world:w},norm[w*4+k])); LEVELS.push(Object.assign({world:w,goal:"boss"},bosses[w])); } })();
+  (function(){ const W=[
+    // World 0 — NEON CITY (intro)
+    [ {s:7,n:4,mv:24,goal:"score",t:1500},{s:7,n:4,mv:22,goal:"collect",ct:1,cc:18},{s:8,n:4,mv:24,goal:"score",t:2600},{s:8,n:5,mv:30,goal:"jelly"},{s:8,n:5,mv:22,goal:"collect",ct:0,cc:22} ],
+    // World 1 — CANDY COVE
+    [ {s:8,n:5,mv:24,goal:"score",t:3400},{s:8,n:5,mv:22,goal:"collect",ct:3,cc:26},{s:8,n:5,mv:22,goal:"score",t:4400,ice:5},{s:8,n:6,mv:30,goal:"jelly"},{s:8,n:5,mv:20,goal:"collect",ct:2,cc:28} ],
+    // World 2 — COSMIC DRIFT
+    [ {s:8,n:5,mv:22,goal:"score",t:5200},{s:8,n:6,mv:22,goal:"collect",ct:4,cc:30},{s:8,n:6,mv:20,goal:"score",t:6200},{s:8,n:6,mv:30,goal:"jelly"},{s:8,n:6,mv:20,goal:"collect",ct:1,cc:32} ],
+    // World 3 — CORAL DEEP
+    [ {s:8,n:6,mv:20,goal:"score",t:7200},{s:9,n:6,mv:22,goal:"collect",ct:5,cc:34},{s:9,n:6,mv:22,goal:"score",t:8400,ice:7},{s:9,n:6,mv:30,goal:"jelly"},{s:9,n:6,mv:20,goal:"collect",ct:0,cc:36} ],
+    // World 4 — VOLCANO CORE (hard)
+    [ {s:9,n:6,mv:20,goal:"score",t:9800,fuse:58},{s:9,n:6,mv:20,goal:"collect",ct:3,cc:38},{s:9,n:6,mv:18,goal:"score",t:11500,ice:6,fuse:52},{s:9,n:6,mv:28,goal:"jelly"},{s:9,n:6,mv:18,goal:"collect",ct:4,cc:42,fuse:55} ],
+    // World 5 — ASTRAL VOID (brutal)
+    [ {s:9,n:6,mv:20,goal:"score",t:13000,ice:6,fuse:52},{s:9,n:6,mv:18,goal:"collect",ct:2,cc:44,fuse:50},{s:9,n:6,mv:26,goal:"jelly"},{s:9,n:6,mv:18,goal:"score",t:15500,ice:8,fuse:46},{s:9,n:6,mv:18,goal:"collect",ct:5,cc:48,fuse:48} ]
+  ];
+    const B=[
+      {bn:"GLITCH KING",be:"👾",s:8,n:5,mv:22,hp:120},{bn:"SUGAR GOLEM",be:"🍬",s:8,n:5,mv:22,hp:175},
+      {bn:"VOID SERPENT",be:"🐉",s:8,n:6,mv:22,hp:220},{bn:"THE KRAKEN",be:"🐙",s:9,n:6,mv:22,hp:270},
+      {bn:"MAGMA TITAN",be:"🌋",s:9,n:6,mv:20,hp:340,fuse:85},{bn:"CHROMA WRAITH",be:"🌀",s:9,n:6,mv:20,hp:420,fuse:90} ];
+    W.forEach((lvls,w)=>{ lvls.forEach(x=>LEVELS.push(Object.assign({world:w},x))); LEVELS.push(Object.assign({world:w,goal:"boss"},B[w])); }); })();
   const BLASTER_DEFS={ hammer:{ic:"🔨",nm:"HAMMER",desc:"Smash any single gem",price:0,unlockLv:1,target:true},
     shuffle:{ic:"🔀",nm:"SHUFFLE",desc:"Reshuffle the whole board",price:120,unlockLv:1,target:false},
     bomb:{ic:"💣",nm:"BOMB",desc:"Blast a 3×3 area",price:200,unlockLv:5,target:true},
@@ -448,7 +483,7 @@
   function todayStr(){ return dstr(new Date()); }
   function yestStr(){ const d=new Date(); d.setDate(d.getDate()-1); return dstr(d); }
   const DAILY_COINS=[40,60,80,120,150,200,300];
-  function maybeDaily(){ if(S.daily.last===todayStr())return;
+  function maybeDaily(){ if(!S.created)return; if(S.daily.last===todayStr())return;
     if(S.daily.last===yestStr())S.daily.streak=(S.daily.streak||0)+1; else S.daily.streak=1;
     const day=((S.daily.streak-1)%7)+1, coins=DAILY_COINS[day-1]; let extra="";
     S.coins+=coins; if(day===3){ S.lives=S.maxLives; S.lastLife=Date.now(); extra="+ Full Lives ❤️"; }
@@ -473,7 +508,7 @@
     $("#nameInput").value=avTmp.name==="Hero"?"":avTmp.name; drawAv(); setScreen("screen-avatar"); }
   function mark(p,n){ Array.from(p.children).forEach(c=>c.classList.remove("sel")); n.classList.add("sel"); }
   function drawAv(){ $("#avFace").textContent=avTmp.face; $("#avHat").textContent=avTmp.hat; $("#avPreview").style.boxShadow=`0 0 0 4px rgba(255,255,255,.2),0 0 30px ${avTmp.color}`; }
-  $("#avDone").onclick=()=>{ avTmp.name=($("#nameInput").value.trim()||"Hero").slice(0,14); const first=!S.created; S.avatar=avTmp; S.created=true; save(); beep(800,.15); renderHome(); setScreen("screen-home"); if(first)setTimeout(maybeDaily,400); };
+  $("#avDone").onclick=()=>{ avTmp.name=($("#nameInput").value.trim()||"Hero").slice(0,14); const first=!S.created; S.avatar=avTmp; S.created=true; save(); beep(800,.15); renderHome(); setScreen("screen-home"); if(first&&!S.seenGuide){ S.seenGuide=true; save(); setTimeout(()=>$("#howOv").classList.add("show"),350); } else setTimeout(maybeDaily,400); };
 
   // ===== HOME =====
   function renderHome(){ const a=S.avatar; $("#homeFace").textContent=a.face; $("#homeHat").textContent=a.hat;
@@ -491,7 +526,7 @@
   $("#btnAch").onclick=()=>{ renderAch(); setScreen("screen-ach"); };
   $("#btnSettings").onclick=()=>{ renderSettings(); setScreen("screen-settings"); };
   $("#btnHow").onclick=()=>$("#howOv").classList.add("show");
-  $("#howOk").onclick=()=>$("#howOv").classList.remove("show");
+  $("#howOk").onclick=()=>{ $("#howOv").classList.remove("show"); setTimeout(maybeDaily,250); };
   $("#btnEditAv").onclick=openAvatar;
   $$("[data-home]").forEach(b=>b.onclick=()=>{ clearInterval(timedTimer); renderHome(); setScreen("screen-home"); });
   $$("[data-mini]").forEach(b=>b.onclick=()=>{ refreshCoins(); setScreen("screen-mini"); });
@@ -507,7 +542,7 @@
         n.innerHTML=`<div class="lv">${unlocked?(isBoss?l.be:num):"🔒"}</div><div class="gtxt">${unlocked?g:"LOCKED"}</div><div class="stars">${unlocked?("★".repeat(st)+"☆".repeat(3-st)):""}</div>`;
         if(unlocked)n.onclick=()=>startLevel(i); grid.appendChild(n); });
       body.appendChild(grid); }); }
-  function tint(bg){ return {neon:"#5a1b8f",candy:"#c23a7a",space:"#3a2a8a",ocean:"#0f6a8f",volcano:"#a33010"}[bg]; }
+  function tint(bg){ return {neon:"#5a1b8f",candy:"#c23a7a",space:"#3a2a8a",ocean:"#0f6a8f",volcano:"#a33010",astral:"#5a1fb0"}[bg]; }
 
   // ===== LEADERBOARD =====
   const WEEK_MS=7*24*3600*1000; let lbMode="weekly";
@@ -533,15 +568,16 @@
     body.querySelectorAll("[data-equip]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.equip; S.activeSkin=i; TYPES=SKINS[i].gems; save(); beep(700,.12); renderSkins(); }); }
 
   // ===== ACHIEVEMENTS =====
-  const JELLY_IDX=[6,13,21];
-  function bossWins(){ let c=0; [4,9,14,19,24].forEach(i=>{ if(S.stars[i])c++; }); return c; }
+  const BOSS_IDX=LEVELS.map((l,i)=>l.goal==="boss"?i:-1).filter(i=>i>=0);
+  const JELLY_IDX=LEVELS.map((l,i)=>l.goal==="jelly"?i:-1).filter(i=>i>=0);
+  function bossWins(){ let c=0; BOSS_IDX.forEach(i=>{ if(S.stars[i])c++; }); return c; }
   const ACHS=[
     {ic:"🌟",nm:"First Steps",ds:"Clear level 1",ok:()=>!!S.stars[0]},
     {ic:"⭐",nm:"Triple Star",ds:"3 stars on a level",ok:()=>Object.values(S.stars).some(v=>v>=3)},
     {ic:"✦",nm:"Booster Smith",ds:"Forge 10 boosters",ok:()=>S.stats.boosters>=10},
     {ic:"💥",nm:"Combo Master",ds:"Hit a ×5 combo",ok:()=>S.stats.maxCombo>=5},
     {ic:"👾",nm:"Boss Slayer",ds:"Defeat a boss",ok:()=>bossWins()>=1},
-    {ic:"👑",nm:"World Ruler",ds:"Beat all 5 bosses",ok:()=>bossWins()>=5},
+    {ic:"👑",nm:"World Ruler",ds:"Beat all 6 bosses",ok:()=>bossWins()>=BOSS_IDX.length},
     {ic:"💰",nm:"Treasure Hoard",ds:"Hold 1000 coins",ok:()=>S.coins>=1000},
     {ic:"💠",nm:"Skin Collector",ds:"Own 3+ skins",ok:()=>S.ownedSkins.length>=3},
     {ic:"⚡",nm:"Speed Demon",ds:"Timed best 3000+",ok:()=>S.allTimeBest>=3000},
@@ -570,7 +606,7 @@
 
   // ===== SURVIVAL =====
   function startSurvival(){ regenLives(); mode="survival"; cfg={goal:"survival",ice:1}; SIZE=8; NUM=4; score=0; collected=0; damage=0; jelly=[]; jellyTotal=0; ice=new Array(SIZE*SIZE).fill(0); sel=null; toolMode=null; busy=false; moves=15;
-    clearInterval(timedTimer); setBg("volcano"); $("#bossBar").style.display="none"; $("#gameTitle").textContent="🏟️ SURVIVAL"; $("#kMoves").textContent="MOVES"; $("#kGoal").textContent="BEST"; prepBoard(); setScreen("screen-game"); }
+    clearInterval(timedTimer); stopHazard(); setBg("volcano"); $("#bossBar").style.display="none"; $("#gameTitle").textContent="🏟️ SURVIVAL"; $("#kMoves").textContent="MOVES"; $("#kGoal").textContent="BEST"; prepBoard(); setScreen("screen-game"); }
   function endSurvival(){ busy=true; const best=score>S.survivalBest; if(best)S.survivalBest=score; const reward=Math.floor(score/120); addCoins(reward); S.winStreak=0; save();
     lastResult={title:best?"SURVIVAL RECORD! 🏟️":"SURVIVAL OVER",score:score,sub:"Endless Survival",stars:"🏟️"};
     $("#ovTitle").textContent=lastResult.title; $("#ovStars").textContent="🏟️"; $("#ovStars").style.color="var(--gold)"; $("#ovScore").textContent=score+" pts";
@@ -601,10 +637,20 @@
   // ===== GAME ENGINE =====
   let SIZE=8,NUM=5,grid=[],tiles=[],score=0,moves=25,busy=false,sel=null;
   let curLevel=0,cfg=null,collected=0,damage=0,_bossDmgShown=0,jelly=[],jellyTotal=0,ice=[],toolMode=null,mode="campaign";
-  let timedLeft=0,timedTimer=null,timedOver=false; const TIMED_LEN=60;
+  let timedLeft=0,timedTimer=null,timedOver=false,hazardLeft=0,hazardTimer=null; const TIMED_LEN=60;
   const boardEl=$("#board"),comboEl=$("#combo");
 
   function prepBoard(){ boardEl.style.gridTemplateColumns=`repeat(${SIZE},1fr)`; boardEl.style.gridTemplateRows=`repeat(${SIZE},1fr)`; makeGrid(); build(); renderBlasters(); updateHUD(); refreshCoins(); }
+  // ===== FIRE HAZARD (senior levels) — a blaze rises if you stall; matches push it back =====
+  function stopHazard(){ if(hazardTimer){clearInterval(hazardTimer);hazardTimer=null;} const f=$("#fireBar"); if(f){f.style.height="0%";f.style.opacity=0;f.classList.remove("hot");} $(".boardwrap").classList.remove("danger"); }
+  function startHazard(){ stopHazard(); if(!cfg||!cfg.fuse)return; hazardLeft=cfg.fuse; updateFire();
+    hazardTimer=setInterval(()=>{ if($("#overlay").classList.contains("show"))return; hazardLeft-=1; updateFire(); if(hazardLeft<=0){ stopHazard(); burnOut(); } },1000); }
+  function addFuse(n){ if(!cfg||!cfg.fuse)return; hazardLeft=Math.min(cfg.fuse,hazardLeft+n); updateFire(); }
+  function updateFire(){ const f=$("#fireBar"); if(!f)return; if(!cfg||!cfg.fuse){ f.style.height="0%"; f.style.opacity=0; return; }
+    const frac=1-Math.max(0,hazardLeft)/cfg.fuse; f.style.opacity=frac<=0.02?0:1; f.style.height=(frac*100).toFixed(1)+"%";
+    f.classList.toggle("hot",frac>0.55); $(".boardwrap").classList.toggle("danger",frac>0.72);
+    if(frac>0.72 && hazardLeft%3===0 && hazardLeft>0){ flash("🔥 HURRY!"); beep(180,.1,"sawtooth",.05); } }
+  function burnOut(){ if($("#overlay").classList.contains("show"))return; endLevel(false,"burn"); }
 
   function startLevel(i){ regenLives(); if(S.lives<=0){ showNoLives(); return; } consumeLife();
     mode="campaign"; curLevel=i; cfg=LEVELS[i]; SIZE=cfg.s; NUM=cfg.n; score=0; moves=cfg.mv; collected=0; damage=0; _bossDmgShown=0; sel=null; toolMode=null; busy=false;
@@ -613,14 +659,14 @@
     clearInterval(timedTimer); setBg(WORLDS[cfg.world].bg); const bb=$("#bossBar");
     if(cfg.goal==="boss"){ $("#gameTitle").textContent="BOSS — "+cfg.bn; bb.style.display="flex"; $("#bossFace").textContent=cfg.be; $("#bossName").textContent=cfg.bn; $("#bossHp").style.width="100%"; $("#bossHpTxt").textContent=cfg.hp; }
     else { $("#gameTitle").textContent="LEVEL "+(i+1); bb.style.display="none"; }
-    $("#kMoves").textContent="MOVES"; $("#kGoal").textContent="GOAL"; prepBoard(); if(cfg.ice){ placeIce(cfg.ice); render(); } setScreen("screen-game"); }
+    $("#kMoves").textContent="MOVES"; $("#kGoal").textContent="GOAL"; prepBoard(); if(cfg.ice){ placeIce(cfg.ice); render(); } startHazard(); setScreen("screen-game"); }
 
   function startTimed(){ regenLives(); mode="timed"; cfg={goal:"timed"}; SIZE=8; NUM=6; score=0; collected=0; damage=0; jelly=[]; jellyTotal=0; sel=null; toolMode=null; busy=false;
-    timedLeft=TIMED_LEN; timedOver=false; setBg("space"); $("#bossBar").style.display="none"; $("#gameTitle").textContent="⏱ TIMED"; $("#kMoves").textContent="TIME"; $("#kGoal").textContent="BEST";
+    timedLeft=TIMED_LEN; timedOver=false; stopHazard(); setBg("space"); $("#bossBar").style.display="none"; $("#gameTitle").textContent="⏱ TIMED"; $("#kMoves").textContent="TIME"; $("#kGoal").textContent="BEST";
     prepBoard(); setScreen("screen-game"); clearInterval(timedTimer);
     timedTimer=setInterval(()=>{ if(timedOver)return; timedLeft--; updateHUD(); if(timedLeft<=0){ timedLeft=0; timedOver=true; clearInterval(timedTimer); endTimed(); } },1000); }
 
-  $("#gameBack").onclick=()=>{ clearInterval(timedTimer); if(mode==="timed"||mode==="survival"){ renderHome(); setScreen("screen-home"); } else { renderMap(); setScreen("screen-map"); } };
+  $("#gameBack").onclick=()=>{ clearInterval(timedTimer); stopHazard(); if(mode==="timed"||mode==="survival"){ renderHome(); setScreen("screen-home"); } else { renderMap(); setScreen("screen-map"); } };
 
   const ix=(r,c)=>r*SIZE+c;
   function makeGrid(){ grid=[]; for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){ let t; do{t=rnd(NUM);}while((c>=2&&grid[ix(r,c-1)].type===t&&grid[ix(r,c-2)].type===t)||(r>=2&&grid[ix(r-1,c)].type===t&&grid[ix(r-2,c)].type===t)); grid.push({type:t,special:null}); } }
@@ -667,7 +713,7 @@
       if(forge.length){ const nm=forge.some(f=>f.sp==="rainbow")?"🌈 COLOR BOMB!":forge.some(f=>f.sp==="bomb")?"💥 BOMB GEM!":"✦ LINE BLASTER!"; flash(nm); beep(990,.14,"square",.05); }
       if(mode==="timed"&&chain>=2){ timedLeft=Math.min(99,timedLeft+2); flash("+2s ⏱"); }
       if(mode==="survival"){ let add=forge.length; if(set.size>=6)add++; if(chain>=3)add++; if(add>0){ moves+=add; flash("+"+add+" moves"); } NUM=Math.min(6,4+Math.floor(score/2500)); }
-      countCollect(set); damage+=set.size; reduceJelly(set); reduceIce(set);
+      countCollect(set); damage+=set.size; reduceJelly(set); reduceIce(set); addFuse(set.size*0.35);
       set.forEach(i=>{ if(grid[i]){ burst(i,TYPES[grid[i].type].c1); tiles[i].classList.add("pop"); }}); await wait(250);
       set.forEach(i=>grid[i]=null); forge.forEach(f=>grid[f.at]={type:f.type,special:f.sp});
       gravity(); refill(); render(); tiles.forEach(e=>e.classList.add("drop")); await wait(270); tiles.forEach(e=>e.classList.remove("drop")); updateHUD(); }
@@ -691,7 +737,7 @@
       else if(isLine(aSp)||isLine(bSp)){ for(let d=-1;d<=1;d++){ if(ar+d>=0&&ar+d<SIZE)addRow(ar+d); if(ac+d>=0&&ac+d<SIZE)addCol(ac+d); } flash("✦ GIGA CROSS!"); }
       else { single(a,B); single(b,A); } }
     else { single(a,B); single(b,A); }
-    if(kill.size){ score+=kill.size*45; bumpCombo(2,kill.size*45); beep(140,.25,"sawtooth",.07); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill);
+    if(kill.size){ score+=kill.size*45; bumpCombo(2,kill.size*45); beep(140,.25,"sawtooth",.07); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill); addFuse(kill.size*0.3);
       kill.forEach(i=>{ if(grid[i]){burst(i,"#fff");tiles[i].classList.add("pop");} }); kill.forEach(i=>grid[i]=null); setTimeout(()=>{ gravity(); refill(); render(); },240); } }
 
   function gravity(){ for(let c=0;c<SIZE;c++){ let w=SIZE-1; for(let r=SIZE-1;r>=0;r--){ if(grid[ix(r,c)]){ grid[ix(w,c)]=grid[ix(r,c)]; if(w!==r)grid[ix(r,c)]=null; w--; } } for(let r=w;r>=0;r--)grid[ix(r,c)]=null; } }
@@ -728,17 +774,17 @@
       bar.appendChild(b); }); }
   async function useNonTarget(key){ busy=true; S.blasters[key]--; save(); renderBlasters();
     if(key==="shuffle"){ autoShuffle(); await wait(200); }
-    else if(key==="lightning"){ const kill=new Set(); let t=0; while(kill.size<8&&t<200){ const i=rnd(grid.length); if(grid[i])kill.add(i); t++; } score+=kill.size*40; beep(900,.2,"square"); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill); kill.forEach(i=>{burst(i,"#fff");tiles[i].classList.add("pop");}); await wait(250); kill.forEach(i=>grid[i]=null); gravity(); refill(); render(); await wait(250); }
+    else if(key==="lightning"){ const kill=new Set(); let t=0; while(kill.size<8&&t<200){ const i=rnd(grid.length); if(grid[i])kill.add(i); t++; } score+=kill.size*40; beep(900,.2,"square"); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill); addFuse(kill.size*0.3); kill.forEach(i=>{burst(i,"#fff");tiles[i].classList.add("pop");}); await wait(250); kill.forEach(i=>grid[i]=null); gravity(); refill(); render(); await wait(250); }
     updateHUD(); if(!checkEnd())await resolve(); busy=false; }
   async function applyTool(i){ const key=toolMode; if(!grid[i])return; toolMode=null; busy=true; S.blasters[key]--; save(); renderBlasters();
     const kill=new Set(),r=Math.floor(i/SIZE),c=i%SIZE;
     if(key==="hammer")kill.add(i); else if(key==="bomb"){ for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){const nr=r+dr,nc=c+dc;if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE)kill.add(ix(nr,nc));} }
     else if(key==="colorblast"){ const tp=grid[i].type; for(let k=0;k<grid.length;k++)if(grid[k]&&grid[k].type===tp)kill.add(k); }
-    score+=kill.size*40; beep(700,.18,"square"); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill); kill.forEach(k=>{burst(k,"#fff");tiles[k].classList.add("pop");}); await wait(250); kill.forEach(k=>grid[k]=null); gravity(); refill(); render(); await wait(250);
+    score+=kill.size*40; beep(700,.18,"square"); countCollect(kill); damage+=kill.size; reduceJelly(kill); reduceIce(kill); addFuse(kill.size*0.3); kill.forEach(k=>{burst(k,"#fff");tiles[k].classList.add("pop");}); await wait(250); kill.forEach(k=>grid[k]=null); gravity(); refill(); render(); await wait(250);
     updateHUD(); if(!checkEnd())await resolve(); busy=false; }
 
   // end campaign
-  function endLevel(win){ busy=true; let stars=0; const isBoss=cfg.goal==="boss";
+  function endLevel(win,reason){ busy=true; stopHazard(); let stars=0; const isBoss=cfg.goal==="boss";
     if(win){ gainLife(); S.stats.wins++; S.winStreak=(S.winStreak||0)+1; stars=1; if(cfg.goal==="score"){ if(score>=cfg.t*1.3)stars=2; if(score>=cfg.t*1.7)stars=3; } else { if(moves>=4)stars=2; if(moves>=8)stars=3; }
       const prev=S.stars[curLevel]||0; if(stars>prev)S.stars[curLevel]=stars; if(curLevel+1>=S.unlocked&&curLevel+1<LEVELS.length)S.unlocked=curLevel+2;
       const mult=1+Math.min(S.winStreak,5)*0.2; const reward=Math.round(((isBoss?90:40)+stars*25+curLevel*4)*mult); addCoins(reward);
@@ -747,8 +793,8 @@
       $("#ovNext").style.display=curLevel+1<LEVELS.length?"":"none"; $("#ovNext").textContent="NEXT ▸"; beep(880,.4,"triangle",.08);
       lastResult={title:$("#ovTitle").textContent,score:score,sub:isBoss?cfg.bn:"Level "+(curLevel+1),stars:"★".repeat(stars)+"☆".repeat(3-stars)};
       if(cfg.goal==="boss"||S.winStreak%3===0||Math.random()<0.4) showChest(); }
-    else { $("#ovTitle").textContent=isBoss?"BOSS SURVIVED 💀":"OUT OF MOVES"; $("#ovStars").textContent="☆☆☆"; $("#ovStars").style.color="rgba(255,255,255,.3)";
-      $("#ovMsg").textContent=(isBoss?`${cfg.bn} had ${Math.max(0,cfg.hp-damage)} HP left.`:(cfg.goal==="jelly"?`${jellyLeft()} jelly left.`:(cfg.goal==="score"?`Reached ${score} of ${cfg.t}.`:`Collected ${collected} of ${cfg.cc}.`)))+` Lost a life 💔`;
+    else { $("#ovTitle").textContent=reason==="burn"?"🔥 BURNED OUT!":(isBoss?"BOSS SURVIVED 💀":"OUT OF MOVES"); $("#ovStars").textContent="☆☆☆"; $("#ovStars").style.color="rgba(255,255,255,.3)";
+      $("#ovMsg").textContent=(reason==="burn"?"The fire reached the top — match faster next time!":(isBoss?`${cfg.bn} had ${Math.max(0,cfg.hp-damage)} HP left.`:(cfg.goal==="jelly"?`${jellyLeft()} jelly left.`:(cfg.goal==="score"?`Reached ${score} of ${cfg.t}.`:`Collected ${collected} of ${cfg.cc}.`))))+` Lost a life 💔`;
       $("#ovNext").style.display=""; $("#ovNext").textContent="RETRY ↻"; beep(160,.4,"sawtooth",.08); S.winStreak=0; lastResult={title:"DEFEAT",score:score,sub:"Level "+(curLevel+1),stars:"☆☆☆"}; }
     $("#ovScore").textContent=score+" pts"; save(); $("#overlay").dataset.ovmode="campaign"; $("#overlay").dataset.win=win?"1":"0"; $("#overlay").classList.add("show"); }
 
@@ -798,7 +844,11 @@
   // ===== BOOT =====
   document.addEventListener("pointerdown",function once(){ ensureCtx(); if(S.music)startMusic(); document.removeEventListener("pointerdown",once); },{once:true});
   function boot(){ regenLives(); checkWeek(); TYPES=SKINS[S.activeSkin]?SKINS[S.activeSkin].gems:SKINS[0].gems; refreshCoins(); updateMusicBtn();
-    if(S.created){ renderHome(); setScreen("screen-home"); setTimeout(maybeDaily,500); } else { openAvatar(); } }
+    const em=document.querySelector('#screen-home img'); if(em&&$("#startEmblem"))$("#startEmblem").src=em.src;
+    setScreen("screen-start"); }
+  $("#startPlay").onclick=()=>{ ensureCtx(); if(S.music)startMusic(); if(!S.created){ openAvatar(); } else { renderHome(); setScreen("screen-home"); setTimeout(maybeDaily,350); } };
+  $("#startHow").onclick=()=>$("#howOv").classList.add("show");
+  $("#startSettings").onclick=()=>{ renderSettings(); setScreen("screen-settings"); };
   boot();
 })();
 </script>
