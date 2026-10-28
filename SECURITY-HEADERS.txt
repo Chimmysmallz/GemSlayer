@@ -1,0 +1,8 @@
+Configure these as HTTP RESPONSE headers on your HTTPS host (this file does not configure the server):
+Content-Security-Policy: default-src 'none'; script-src 'sha256-OegDye9rAgK2gQ5euxbBU3NuSymUQen8PZQbu34+rXI='; script-src-attr 'none'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; frame-ancestors 'none'
+X-Frame-Options: DENY
+X-Content-Type-Options: nosniff
+Referrer-Policy: no-referrer
+Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+Strict-Transport-Security: max-age=31536000
+Enable HSTS only after HTTPS is working for this host. Recopy the CSP after each build.
